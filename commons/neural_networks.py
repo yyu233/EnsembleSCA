@@ -2,6 +2,7 @@ from tensorflow.keras.optimizers import Adam, RMSprop, SGD, Adagrad, Adadelta
 from tensorflow.keras.layers import Flatten, Dense, Input, Dropout, GaussianNoise
 from tensorflow.keras.layers import Conv1D, Conv2D, AveragePooling2D, MaxPooling1D, MaxPooling2D, BatchNormalization, AveragePooling1D
 from tensorflow.keras.models import Sequential
+from commons.custom_loss import ge_loss
 
 
 class NeuralNetwork:
@@ -36,6 +37,6 @@ class NeuralNetwork:
 
         model.add(Dense(classes, activation='softmax'))
         model.summary()
-        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=learning_rate), metrics=['accuracy'])
+        model.compile(loss=ge_loss, optimizer=Adam(lr=learning_rate), metrics=['accuracy'])
 
         return model

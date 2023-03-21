@@ -12,8 +12,8 @@ ensemble_aes.set_target_byte(2)
 ensemble_aes.set_mini_batch(400)
 ensemble_aes.set_epochs(10)
 ensemble_aes.run_ensemble(
-    number_of_models=5,
-    number_of_best_models=3
+    number_of_models=10,
+    number_of_best_models=7
 )
 
 # plotting GE and SR
@@ -33,4 +33,5 @@ plt.plot(ensemble_aes.get_sr_ensemble_best_models(), label="SR Ensemble Best Mod
 plt.xlabel("Traces")
 plt.ylabel("Success Rate")
 plt.legend()
+plt.savefig("yyz_cnn_plot")
 plt.show()

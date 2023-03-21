@@ -214,7 +214,7 @@ class EnsembleAES:
 
         target_params = SCADatasets().get_trace_set(self.target_dataset)
 
-        root_folder = "D:/traces/"
+        root_folder = "/home/yiy003/private/ECE268/EnsembleSCA/ASCAD/ATMEGA_AES_v1/ATM_AES_v1_fixed_key/ASCAD_data/ASCAD_databases/"
 
         (X_profiling, Y_profiling), (X_validation, Y_validation), (X_attack, Y_attack), (
             _, plt_validation, plt_attack) = LoadDatasets().load_dataset(
@@ -246,8 +246,21 @@ class EnsembleAES:
         kr_nt = int(len(X_validation) / (kr_step * kr_fraction))
 
         # train random MLP
+        # for model_index in range(self.number_of_models):
+        #    ge_validation, ge_attack, sr_validation, sr_attack, kp_krs = self.run_mlp(X_profiling, Y_profiling,
+        #                                                                              X_validation, Y_validation,
+        #                                                                              X_attack, Y_attack,
+        #                                                                              plt_validation, plt_attack,
+        #                                                                              target_params, kr_step, kr_fraction)
+        #    self.ge_all_validation.append(ge_validation)
+        #    self.ge_all_attack.append(ge_attack)
+        #    self.sr_all_validation.append(sr_validation)
+        #    self.sr_all_attack.append(sr_attack)
+        #    self.k_ps_all.append(kp_krs)
+
+        # train random CNN
         for model_index in range(self.number_of_models):
-            ge_validation, ge_attack, sr_validation, sr_attack, kp_krs = self.run_mlp(X_profiling, Y_profiling,
+            ge_validation, ge_attack, sr_validation, sr_attack, kp_krs = self.run_cnn(X_profiling, Y_profiling,
                                                                                       X_validation, Y_validation,
                                                                                       X_attack, Y_attack,
                                                                                       plt_validation, plt_attack,
@@ -257,19 +270,6 @@ class EnsembleAES:
             self.sr_all_validation.append(sr_validation)
             self.sr_all_attack.append(sr_attack)
             self.k_ps_all.append(kp_krs)
-
-        # train random CNN
-        # for model_index in range(self.number_of_models):
-        #     ge_validation, ge_attack, sr_validation, sr_attack, kp_krs = self.run_cnn(X_profiling, Y_profiling,
-        #                                                                               X_validation, Y_validation,
-        #                                                                               X_attack, Y_attack,
-        #                                                                               plt_validation, plt_attack,
-        #                                                                               target_params, kr_step, kr_fraction)
-        #     self.ge_all_validation.append(ge_validation)
-        #     self.ge_all_attack.append(ge_attack)
-        #     self.sr_all_validation.append(sr_validation)
-        #     self.sr_all_attack.append(sr_attack)
-        #     self.k_ps_all.append(kp_krs)
 
         ge_ensemble, ge_ensemble_best_models, sr_ensemble, sr_ensemble_best_models = self.compute_ensembles(kr_nt,
                                                                                                             target_params["good_key"])

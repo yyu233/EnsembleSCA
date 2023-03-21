@@ -1,0 +1,4 @@
+ASCAD/
+commons/__pycache__/
+**/*.png
+**/*.swp
