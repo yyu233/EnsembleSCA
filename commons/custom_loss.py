@@ -1,7 +1,8 @@
 def ge_loss(y_true, y_pred):
         import numpy as np
         import random
-
+        import tensorflow as tf
+        
         from commons.datasets import SCADatasets
         from commons.load_datasets import LoadDatasets
 
@@ -41,16 +42,21 @@ def ge_loss(y_true, y_pred):
         l_model="HW"
         param = SCADatasets().get_trace_set("ascad_fixed_key")
         
+        print("Before load database")
         root_folder = "/home/yiy003/private/ECE268/EnsembleSCA/ASCAD/ATMEGA_AES_v1/ATM_AES_v1_fixed_key/ASCAD_data/ASCAD_databases/"
 
         (X_profiling, Y_profiling), (X_validation, Y_validation), (X_attack, Y_attack), (
             _, plt_validation, plt_attack) = LoadDatasets().load_dataset(
             root_folder + param["file"], param["n_profiling"], param["n_attack"], byte, l_model)
         
-        output_probabilites = y_pred
-        test_trace_data = X_profiling
-  
-        nt = len(X_profiling)
+        print("After load database")
+        output_probabilities = y_pred
+        test_trace_data = plt_validation
+        print(f'X_profiling {len(X_profiling)}')
+        print(f'plt_validation {len(plt_validation)}')
+
+        print("After test_trace_data")
+        nt = len(plt_validation)
         step=10
         runs=100
         fraction=1
@@ -59,19 +65,32 @@ def ge_loss(y_true, y_pred):
         key_ranking_sum = np.zeros(nt_interval)
         key_probabilities_key_ranks = np.zeros((runs, nt, 256))
 
+        print("Before labels")
         labels_key_hypothesis = np.zeros((256, nt))
         for key_byte_hypothesis in range(0, 256):
             key_h = bytearray.fromhex(param["key"])
             key_h[byte] = key_byte_hypothesis
             labels_key_hypothesis[key_byte_hypothesis][:] = aes_labelize_ge_sr(test_trace_data, byte, key_h, l_model)
+            print("After aes_labelize_ge_sr")
         
+        print("After labels")
         probabilities_kg_all_traces = np.zeros((nt, 256))
         
+        print("Before probabilities_kg_all_traces")
         for index in range(nt):
-            probabilities_kg_all_traces[index] = output_probabilities[index][
-                np.asarray([int(leakage[index]) for leakage in labels_key_hypothesis[:]])
-            ]
+            # convert the list of leakages to a NumPy array
+            leakage_indices = np.asarray([int(leakage) for leakage in labels_key_hypothesis[:, index]])
 
+            # slice the output probabilities tensor using the leakage indices
+            slice_obj = [slice(None)] * len(output_probabilities.shape)
+            slice_obj[1] = tf.convert_to_tensor(leakage_indices)
+            probabilities_kg_all_traces = tf.gather_nd(output_probabilities, tf.convert_to_tensor(slice_obj))
+
+
+
+        print("After probabilities_kg_all_traces")
+        
+        print("Before run loop")
         for run in range(runs):
             probabilities_kg_all_traces_shuffled = shuffle(probabilities_kg_all_traces, random_state=random.randint(0, 100000))
             key_probabilities = np.zeros(256)
@@ -88,9 +107,11 @@ def ge_loss(y_true, y_pred):
                     kr_count += 1
             print(
                 "KR: {} | GE for correct key ({}): {})".format(run, param["good_key"], key_ranking_sum[nt_interval - 1] / (run + 1)))
-
+        
+        print("After run loop")
         guessing_entropy = key_ranking_sum / runs
         
+        print("Before return")
         return guessing_entropy
 
 
