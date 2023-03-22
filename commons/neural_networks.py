@@ -1,5 +1,5 @@
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD, Adagrad, Adadelta
-from tensorflow.keras.layers import Flatten, Dense, Input, Dropout, GaussianNoise
+from tensorflow.keras.layers import Flatten, Dense, Input, Dropout, GaussianNoise, LSTM
 from tensorflow.keras.layers import Conv1D, Conv2D, AveragePooling2D, MaxPooling1D, MaxPooling2D, BatchNormalization, AveragePooling1D
 from tensorflow.keras.models import Sequential
 from commons.custom_loss import ge_loss
@@ -38,5 +38,18 @@ class NeuralNetwork:
         model.add(Dense(classes, activation='softmax'))
         model.summary()
         model.compile(loss=ge_loss, optimizer=Adam(lr=learning_rate), metrics=['accuracy'], run_eagerly=True)
+
+        return model
+    
+    def lstm_random(self, classes, number_of_samples, activation, neurons, layers, learning_rate):
+        model = Sequential()
+        model.add(BatchNormalization(input_shape=(number_of_samples, 1)))
+        for l_i in range(layers):
+            model.add(LSTM(neurons, activation=activation, return_sequences=True, kernel_initializer='he_uniform', bias_initializer='zeros'))
+        model.add(LSTM(neurons, activation=activation, kernel_initializer='he_uniform', bias_initializer='zeros'))
+        model.add(Dense(classes, activation='softmax'))
+        model.summary()
+        optimizer = Adam(lr=learning_rate)
+        model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
         return model

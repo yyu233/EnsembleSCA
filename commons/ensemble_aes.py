@@ -143,7 +143,40 @@ class EnsembleAES:
         backend.clear_session()
 
         return ge_validation, ge_attack, sr_validation, sr_attack, kp_krs
+    
+    def run_lstm(self, X_profiling, Y_profiling, X_validation, Y_validation, X_attack, Y_attack, plt_validation, plt_attack, params, step, fraction):
+        X_profiling = X_profiling.reshape((X_profiling.shape[0], X_profiling.shape[1], 1))
+        X_validation = X_validation.reshape((X_validation.shape[0], X_validation.shape[1], 1))
+        X_attack = X_attack.reshape((X_attack.shape[0], X_attack.shape[1], 1))
 
+        mini_batch = random.randrange(500, 1000, 100)
+        learning_rate = random.uniform(0.0001, 0.001)
+        activation = ['relu', 'tanh', 'elu', 'selu'][random.randint(0, 3)]
+        layers = random.randrange(2, 8, 1)
+        neurons = random.randrange(500, 800, 100)
+
+        model = NeuralNetwork().lstm_random(self.classes, params["number_of_samples"], activation, neurons, layers, learning_rate)
+        model.fit(
+            x=X_profiling,
+            y=Y_profiling,
+            batch_size=self.mini_batch,
+            verbose=1,
+            epochs=self.epochs,
+            shuffle=True,
+            validation_data=(X_validation, Y_validation),
+            callbacks=[])
+
+        ge_validation, sr_validation, kp_krs = SCAMetrics().ge_and_sr(100, model, params, self.l_model, self.target_byte,
+                                                                      X_validation, plt_validation,
+                                                                      step, fraction)
+        ge_attack, sr_attack, _ = SCAMetrics().ge_and_sr(100, model, params, self.l_model, self.target_byte, X_attack, plt_attack, step,
+                                                         fraction)
+
+        backend.clear_session()
+
+        return ge_validation, ge_attack, sr_validation, sr_attack, kp_krs
+
+    
     def compute_ensembles(self, kr_nt, correct_key):
 
         list_of_best_models = self.get_best_models(self.number_of_models, self.ge_all_validation, kr_nt)
@@ -259,8 +292,20 @@ class EnsembleAES:
         #    self.k_ps_all.append(kp_krs)
 
         # train random CNN
+        # for model_index in range(self.number_of_models):
+        #    ge_validation, ge_attack, sr_validation, sr_attack, kp_krs = self.run_cnn(X_profiling, Y_profiling,
+        #                                                                              X_validation, Y_validation,
+        #                                                                              X_attack, Y_attack,
+        #                                                                              plt_validation, plt_attack,
+        #                                                                              target_params, kr_step, kr_fraction)
+        #    self.ge_all_validation.append(ge_validation)
+        #    self.ge_all_attack.append(ge_attack)
+        #    self.sr_all_validation.append(sr_validation)
+        #    self.sr_all_attack.append(sr_attack)
+        #    self.k_ps_all.append(kp_krs)
+            
         for model_index in range(self.number_of_models):
-            ge_validation, ge_attack, sr_validation, sr_attack, kp_krs = self.run_cnn(X_profiling, Y_profiling,
+            ge_validation, ge_attack, sr_validation, sr_attack, kp_krs = self.run_lstm(X_profiling, Y_profiling,
                                                                                       X_validation, Y_validation,
                                                                                       X_attack, Y_attack,
                                                                                       plt_validation, plt_attack,
