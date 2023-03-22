@@ -37,6 +37,6 @@ class NeuralNetwork:
 
         model.add(Dense(classes, activation='softmax'))
         model.summary()
-        model.compile(loss=ge_loss, optimizer=Adam(lr=learning_rate), metrics=['accuracy'])
+        model.compile(loss=ge_loss, optimizer=Adam(lr=learning_rate), metrics=['accuracy'], run_eagerly=True)
 
         return model

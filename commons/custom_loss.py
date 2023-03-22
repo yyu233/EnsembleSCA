@@ -2,7 +2,8 @@ def ge_loss(y_true, y_pred):
         import numpy as np
         import random
         import tensorflow as tf
-        
+        from sklearn.utils import shuffle
+
         from commons.datasets import SCADatasets
         from commons.load_datasets import LoadDatasets
 
@@ -50,13 +51,15 @@ def ge_loss(y_true, y_pred):
             root_folder + param["file"], param["n_profiling"], param["n_attack"], byte, l_model)
         
         print("After load database")
-        output_probabilities = y_pred
-        test_trace_data = plt_validation
+        output_probabilities = y_pred.numpy()
+        print(output_probabilities.shape)
+
+        test_trace_data = plt_validation[:400]
         print(f'X_profiling {len(X_profiling)}')
         print(f'plt_validation {len(plt_validation)}')
 
         print("After test_trace_data")
-        nt = len(plt_validation)
+        nt = 400
         step=10
         runs=100
         fraction=1
@@ -76,17 +79,18 @@ def ge_loss(y_true, y_pred):
         print("After labels")
         probabilities_kg_all_traces = np.zeros((nt, 256))
         
+        
         print("Before probabilities_kg_all_traces")
+        print(len(output_probabilities[0][np.asarray([int(leakage[0]) for leakage in labels_key_hypothesis[:]])]))
+        print(output_probabilities.shape)
+        print(len(np.asarray([int(leakage[0]) for leakage in labels_key_hypothesis[:]])))
+        print(len(labels_key_hypothesis[:]))
         for index in range(nt):
-            # convert the list of leakages to a NumPy array
-            leakage_indices = np.asarray([int(leakage) for leakage in labels_key_hypothesis[:, index]])
-
-            # slice the output probabilities tensor using the leakage indices
-            slice_obj = [slice(None)] * len(output_probabilities.shape)
-            slice_obj[1] = tf.convert_to_tensor(leakage_indices)
-            probabilities_kg_all_traces = tf.gather_nd(output_probabilities, tf.convert_to_tensor(slice_obj))
-
-
+            probabilities_kg_all_traces[index] = output_probabilities[index][
+                    np.asarray([int(leakage[index]) for leakage in labels_key_hypothesis[:]])
+                ]
+        
+        print(probabilities_kg_all_traces)
 
         print("After probabilities_kg_all_traces")
         
@@ -102,17 +106,18 @@ def ge_loss(y_true, y_pred):
                 if (index + 1) % step == 0:
                     key_ranking_good_key = list(key_probabilities_sorted).index(param["good_key"]) + 1
                     key_ranking_sum[kr_count] += key_ranking_good_key
-                    if key_ranking_good_key == 1:
-                        success_rate_sum[kr_count] += 1
                     kr_count += 1
             print(
                 "KR: {} | GE for correct key ({}): {})".format(run, param["good_key"], key_ranking_sum[nt_interval - 1] / (run + 1)))
+            print(key_ranking_sum[nt_interval - 1])
         
         print("After run loop")
         guessing_entropy = key_ranking_sum / runs
+        print(key_ranking_sum)
         
         print("Before return")
-        return guessing_entropy
+        print(guessing_entropy[-1])
+        return guessing_entropy[-1]
 
 
        
