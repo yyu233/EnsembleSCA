@@ -1,3 +1,4 @@
+
 from commons.ensemble_aes import EnsembleAES
 import matplotlib.pyplot as plt
 
@@ -12,8 +13,8 @@ ensemble_aes.set_target_byte(2)
 ensemble_aes.set_mini_batch(400)
 ensemble_aes.set_epochs(10)
 ensemble_aes.run_ensemble(
-    number_of_models=10,
-    number_of_best_models=7
+    number_of_models=4,
+    number_of_best_models=2
 )
 
 # plotting GE and SR

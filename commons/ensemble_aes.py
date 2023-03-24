@@ -1,3 +1,4 @@
+
 from tensorflow.keras import backend as backend
 from tensorflow.keras.utils import to_categorical
 from commons.neural_networks import NeuralNetwork
@@ -152,8 +153,8 @@ class EnsembleAES:
         mini_batch = random.randrange(500, 1000, 100)
         learning_rate = random.uniform(0.0001, 0.001)
         activation = ['relu', 'tanh', 'elu', 'selu'][random.randint(0, 3)]
-        layers = random.randrange(2, 8, 1)
-        neurons = random.randrange(500, 800, 100)
+        layers = random.randrange(2, 4, 1)
+        neurons = random.randrange(100, 400, 100)
 
         model = NeuralNetwork().lstm_random(self.classes, params["number_of_samples"], activation, neurons, layers, learning_rate)
         model.fit(
@@ -247,7 +248,7 @@ class EnsembleAES:
 
         target_params = SCADatasets().get_trace_set(self.target_dataset)
 
-        root_folder = "/home/yiy003/private/ECE268/EnsembleSCA/ASCAD/ATMEGA_AES_v1/ATM_AES_v1_fixed_key/ASCAD_data/ASCAD_databases/"
+        root_folder = "/content/drive/MyDrive/268/EnsembleSCA/ASCAD/ATMEGA_AES_v1/ATM_AES_v1_fixed_key/ASCAD_data/ASCAD_databases/"
 
         (X_profiling, Y_profiling), (X_validation, Y_validation), (X_attack, Y_attack), (
             _, plt_validation, plt_attack) = LoadDatasets().load_dataset(
